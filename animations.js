@@ -28,6 +28,41 @@
     });
   }
 
+  // --- Mobile menu --------------------------------------------------------
+  var menu = document.getElementById("mobile-menu");
+  var toggle = document.querySelector("[data-menu-toggle]");
+  if (menu && toggle) {
+    var iconOpen = toggle.querySelector('[data-menu-icon="open"]');
+    var iconClose = toggle.querySelector('[data-menu-icon="close"]');
+    var setOpen = function (open) {
+      menu.hidden = !open;
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      iconOpen.classList.toggle("hidden", open);
+      iconClose.classList.toggle("hidden", !open);
+    };
+    toggle.addEventListener("click", function () { setOpen(menu.hidden); });
+    menu.addEventListener("click", function (e) { if (e.target.closest("a")) setOpen(false); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !menu.hidden) { setOpen(false); toggle.focus(); }
+    });
+    var desktop = window.matchMedia("(min-width: 1024px)");
+    var onChange = function () { if (desktop.matches) setOpen(false); };
+    if (desktop.addEventListener) desktop.addEventListener("change", onChange);
+
+    // Mark the current page (works with or without ".html" in the URL).
+    var page = location.pathname.split("/").pop().replace(/\.html$/, "") || "index";
+    menu.querySelectorAll("a[href]").forEach(function (a) {
+      var href = a.getAttribute("href");
+      if (href.indexOf("#") !== -1) return;
+      if (href.replace(/\.html$/, "") === page) {
+        a.classList.remove("text-navy", "text-navy/80");
+        a.classList.add("text-scarlet");
+        a.setAttribute("aria-current", "page");
+      }
+    });
+  }
+
   // --- Header scroll state (subtle shadow once scrolled) -------------------
   var header = document.querySelector("header");
   if (header) {
