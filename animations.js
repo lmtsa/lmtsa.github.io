@@ -63,6 +63,61 @@
     });
   }
 
+  // --- Announcement popup (shown once per browser session) ----------------
+  var POPUP = {
+    key: "lmtsa-popup-runoffs-2026",
+    url: "https://docs.google.com/document/d/1bIuts_D_-i0QU5VHikbx25wgYH7NlChh0chBx6NQVwE/edit?usp=sharing",
+  };
+  var alreadySeen = false;
+  try { alreadySeen = sessionStorage.getItem(POPUP.key) === "1"; } catch (e) {}
+  if (!alreadySeen) {
+    setTimeout(function () {
+      try { sessionStorage.setItem(POPUP.key, "1"); } catch (e) {}
+      var lastFocus = document.activeElement;
+      var modal = document.createElement("div");
+      modal.className = "popup-backdrop fixed inset-0 z-[60] flex items-center justify-center p-4";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "popup-title");
+      modal.innerHTML =
+        '<div class="absolute inset-0 bg-navydeep/60" data-close></div>' +
+        '<div class="popup-card relative w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-lg shadow-2xl px-6 sm:px-12 py-8 sm:py-10 text-center">' +
+          '<button type="button" class="absolute top-3 right-3 w-11 h-11 inline-flex items-center justify-center rounded-md text-navy hover:bg-creamdeep transition-colors" aria-label="Close" data-close>' +
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-6 h-6"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+          '</button>' +
+          '<p class="font-mono text-xs font-bold tracking-[0.15em] uppercase text-scarlet">Announcement</p>' +
+          '<h2 id="popup-title" class="mt-3 font-display font-bold text-3xl sm:text-4xl text-navy leading-tight">Attention LMTSA Members!</h2>' +
+          '<p class="mt-3 font-display font-semibold text-xl text-scarlet">Runoffs have been posted!</p>' +
+          '<p class="mt-3 font-sans text-navy/70 leading-relaxed">The 2026&ndash;2027 runoffs are now available. Open the document for details and submission instructions.</p>' +
+          '<p class="mt-4 font-sans text-sm text-navy/80 bg-creamdeep border border-line rounded-md px-4 py-2.5"><strong class="font-semibold text-navy">Note:</strong> You must be signed in to your school email to access the document.</p>' +
+          '<a href="' + POPUP.url + '" target="_blank" rel="noopener noreferrer" class="mt-7 inline-block bg-navy text-white font-display font-semibold text-lg rounded-md px-8 py-3.5 hover:bg-scarlet transition-colors" data-primary>View the Runoffs</a>' +
+          '<button type="button" class="mt-5 block mx-auto font-sans text-sm font-semibold text-navy underline underline-offset-4 hover:text-scarlet transition-colors" data-close>Continue Browsing</button>' +
+        '</div>';
+
+      var close = function () {
+        modal.remove();
+        document.documentElement.style.overflow = "";
+        document.removeEventListener("keydown", onKey);
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
+      };
+      var onKey = function (e) {
+        if (e.key === "Escape") { close(); return; }
+        if (e.key !== "Tab") return;
+        var items = modal.querySelectorAll("a[href], button");
+        var first = items[0], last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      modal.addEventListener("click", function (e) {
+        if (e.target.closest("[data-close]") || e.target.closest("[data-primary]")) close();
+      });
+      document.addEventListener("keydown", onKey);
+      document.documentElement.style.overflow = "hidden";
+      document.body.appendChild(modal);
+      modal.querySelector("[data-primary]").focus();
+    }, 700);
+  }
+
   // --- Header scroll state (subtle shadow once scrolled) -------------------
   var header = document.querySelector("header");
   if (header) {
